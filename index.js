@@ -1,7 +1,11 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 app.use(express.json())
+morgan.token('body', (req, res) => JSON.stringify(req.body))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
 
 let persons = [
     {
@@ -28,7 +32,8 @@ let persons = [
 
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+    morgan('tiny')
+    res.json(persons)
 })
 
 app.get("/api/persons/:id", (req, res) => {
@@ -36,9 +41,10 @@ app.get("/api/persons/:id", (req, res) => {
     const person = persons.find(person => person.id === id)
   
     if (person) {
-      res.json(person)
-    } else {
-      res.status(404).end()
+        res.json(person)
+    }
+    else {
+        res.status(404).end()
     }
 })
 
@@ -66,7 +72,7 @@ app.post("/api/persons", (req, res) => {
     const body = req.body
     if (!body.name || !body.number) {
         return res.status(400).json(
-        { error: "content missing" }
+            { error: "content missing" }
         )
     }
     if (persons.map(person => person.name).includes(body.name)) {
@@ -74,7 +80,6 @@ app.post("/api/persons", (req, res) => {
             { error: "name not unique" }
         )
     }
-    
     const person = {
       name: body.name,
       number: body.number,
