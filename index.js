@@ -12,9 +12,8 @@ morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 app.get('/api/persons', (req, res) => {
-    morgan('tiny')
     Person.find({}).then(people => {
-        response.json(people)
+        res.json(people)
     })
 })
 
@@ -53,12 +52,12 @@ app.post("/api/persons", (req, res) => {
             { error: "content missing" }
         )
     }
-    const person = {
+    const person = new Person({
       name: body.name,
       number: body.number,
-    }
+    })
     person.save().then(savedPerson => {
-        response.json(savedPerson)
+        res.json(savedPerson)
     })
 })
 
