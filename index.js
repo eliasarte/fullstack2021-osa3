@@ -11,13 +11,11 @@ app.use(express.json())
 morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, req, re, next) => {
     console.error(error.message)
-  
     if (error.name === 'CastError') {
-      return response.status(400).send({ error: 'malformatted id' })
+      return res.status(400).send({ error: 'malformatted id' })
     }
-  
     next(error)
   }
   
@@ -84,6 +82,28 @@ app.post("/api/persons", (req, res, next) => {
         res.json(savedPerson)
     }).catch(error => next(error))
 })
+
+app.put("/api/persons/:id", (req, res, next) => {
+    const body = req.body
+    const person = {
+      name: body.name,
+      number: body.number
+    }
+
+    Person.findByIdAndUpdate(req.params.id, person, {new: true})
+    .then(person => {
+        res.json(person)
+    })
+    .catch(error => next(error))
+})
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+  
+app.use(unknownEndpoint)
+  
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
