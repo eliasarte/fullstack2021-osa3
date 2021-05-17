@@ -1,3 +1,5 @@
 # fullstack2021-osa3
 
-API: http://sleepy-wildwood-69364.herokuapp.com/api/persons
+BACKEND: http://sleepy-wildwood-69364.herokuapp.com/api/persons
+
+FRONTEND: http://sleepy-wildwood-69364.herokuapp.com/
