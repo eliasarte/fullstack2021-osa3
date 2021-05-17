@@ -2,6 +2,8 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+require('dotenv').config()
+const Person = require('./models/person')
 
 app.use(express.static('build'))
 app.use(cors())
@@ -9,67 +11,40 @@ app.use(express.json())
 morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-
-let persons = [
-    {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": 1
-    },
-    {
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523",
-        "id": 2
-    },
-    {
-        "name": "Dan Abramov",
-        "number": "12-43-234345",
-        "id": 3
-    },
-    {
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122",
-        "id": 4
-    }
-]
-
-
 app.get('/api/persons', (req, res) => {
     morgan('tiny')
-    res.json(persons)
+    Person.find({}).then(people => {
+        response.json(people)
+    })
 })
 
 app.get("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(person => person.id === id)
-  
-    if (person) {
-        res.json(person)
-    }
-    else {
-        res.status(404).end()
-    }
+    Person.findById(req.params.id)
+    .then((person) => {
+        if (person) {
+            res.json(person)
+        }
+        else {
+            res.status(404).end()
+        }
+    })
 })
 
 app.get('/info', (req, res) => {
     const time = new Date();
-    const count = persons.length
-    res.send(
-        `<div><p>Phonebook has info for ${count} people</p><p>${time}</p></div>`
-    )
-  })
-
-app.delete("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    persons = persons.filter(person => person.id !== id);
-    res.status(204).end();
+    Person.find({}).then((persons) => {
+        res.send(
+            `<div><p>Phonebook has info for ${persons.length} people</p><p>${time}</p></div>`
+        )
+    })
 })
-
-const generateId = () => {
-    min = Math.ceil(1)
-    max = Math.floor(100000)
-    return Math.floor(Math.random() * (max - min + 1) + min)
-}
+  
+app.delete("/api/persons/:id", (req, res) => {
+    Person.findByIdAndRemove(req.params.id)
+    .then(() => {
+        res.status(204).end()
+    })
+})
   
 app.post("/api/persons", (req, res) => {
     const body = req.body
@@ -78,18 +53,13 @@ app.post("/api/persons", (req, res) => {
             { error: "content missing" }
         )
     }
-    if (persons.map(person => person.name).includes(body.name)) {
-        return res.status(400).json(
-            { error: "name not unique" }
-        )
-    }
     const person = {
       name: body.name,
       number: body.number,
-      id: generateId()
     }
-    persons = persons.concat(person);
-    res.json(person);
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 const PORT = process.env.PORT || 3001
